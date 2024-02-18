@@ -19,6 +19,8 @@ RX = 15
 
 HISTORY = 1440
 INTERVAL = 60
+RESET_EVERY = 1
+COUNT = 0
 
 START1 = b"\x42"
 START2 = b"\x4d"
@@ -37,12 +39,22 @@ part100 = deque(maxlen=HISTORY)
 
 GPIO.setup([SET, RESET], GPIO.OUT, initial=GPIO.HIGH)
 
+def reset():
+    # Reset
+    GPIO.output(RESET, 0)
+    sleep(1)
+    GPIO.output(RESET, 1)
+
+
 serial = serial.Serial("/dev/serial0", 9600)
 f = open(LOG, "a")
 
 fig, ax = plt.subplots()
 
 while True:
+    COUNT += 1
+    if COUNT  % RESET_EVERY == 0:
+        reset()
     # Wait for the start characters
     while b1 := serial.read() != START1:
         continue
