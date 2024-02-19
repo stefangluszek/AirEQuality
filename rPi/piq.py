@@ -49,7 +49,7 @@ def reset():
 serial = serial.Serial("/dev/serial0", 9600)
 f = open(LOG, "a")
 
-fig, ax = plt.subplots()
+fig, (ax, ax2) = plt.subplots(2)
 
 while True:
     COUNT += 1
@@ -92,16 +92,21 @@ while True:
     part100.append(part_100um)
 
     ax.clear()
-    ax.plot(pm10, label="PM10")
-    ax.plot(pm25, label="PM2.5")
-    ax.plot(pm100, label="PM100")
+    ax2.clear()
+
+    ax2.plot(pm10, label="PM10")
+    ax2.plot(pm25, label="PM2.5")
+    ax2.plot(pm100, label="PM100")
+
     ax.plot(part03, label="Particles > 0.3um")
     ax.plot(part05, label="Particles > 0.5um")
     ax.plot(part10, label="Particles > 1.0um")
     ax.plot(part25, label="Particles > 2.5um")
     ax.plot(part50, label="Particles > 5.0um")
     ax.plot(part100, label="Particles > 10.0um")
+
     ax.legend()
+    ax2.legend()
 
     plt.pause(INTERVAL)
 
