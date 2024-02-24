@@ -1,3 +1,4 @@
+timestamp,lenght,pm10_standard,pm25_standard,pm100_standard,pm10_env,pm25_env,pm_100_env,part_03um,part_05um,part_10um,part_25um,part_50um,part_100um,reserved,checksum
 1707808210,28,2,3,3,2,3,3,447,121,24,1,0,0,38656,676
 1707808270,28,2,3,3,2,3,3,447,121,24,1,0,0,38656,676
 1707808330,28,2,3,3,2,3,3,447,121,24,1,0,0,38656,676
