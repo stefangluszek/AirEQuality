@@ -1,15 +1,13 @@
+import os
 import struct
 from collections import deque
+from random import randint
 from time import sleep, time
 
+DRY_RUN = os.getenv("DRY_RUN")
+
 import matplotlib.pyplot as plt
-import RPi.GPIO as GPIO
-import serial
-
-GPIO.setmode(GPIO.BOARD)
-GPIO.setwarnings(False)
-
-print(f"Running on {GPIO.RPI_INFO}!")
+import requests
 
 # Setup channels
 SET = 23
@@ -17,14 +15,27 @@ RESET = 24
 TX = 14
 RX = 15
 
+if not DRY_RUN:
+    import RPi.GPIO as GPIO
+
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setwarnings(False)
+    GPIO.setup([SET, RESET], GPIO.OUT, initial=GPIO.HIGH)
+    print(f"Running on {GPIO.RPI_INFO}!")
+
+
+import serial
+
 HISTORY = 1440
-INTERVAL = 60
+INTERVAL = 1
 RESET_EVERY = 1
 COUNT = 0
 
 START1 = b"\x42"
 START2 = b"\x4d"
 LOG = "log.csv"
+
+METRICS_ENDPOINT = os.getenv("METRICS_ENDPOINT")
 
 pm10 = deque(maxlen=HISTORY)
 pm25 = deque(maxlen=HISTORY)
@@ -37,32 +48,56 @@ part50 = deque(maxlen=HISTORY)
 part100 = deque(maxlen=HISTORY)
 
 
-GPIO.setup([SET, RESET], GPIO.OUT, initial=GPIO.HIGH)
-
 def reset():
+    if DRY_RUN:
+        return
     # Reset
     GPIO.output(RESET, 0)
     sleep(1)
     GPIO.output(RESET, 1)
 
 
-serial = serial.Serial("/dev/serial0", 9600)
+if not DRY_RUN:
+    serial0 = serial.Serial("/dev/serial0", 9600)
+
 f = open(LOG, "a")
 
 fig, (ax, ax2) = plt.subplots(2)
 
 while True:
     COUNT += 1
-    if COUNT  % RESET_EVERY == 0:
+    if COUNT % RESET_EVERY == 0:
         reset()
-    # Wait for the start characters
-    while b1 := serial.read() != START1:
-        continue
 
-    if b2 := serial.read() != START2:
-        continue
+    if not DRY_RUN:
+        # Wait for the start characters
+        while b1 := serial0.read() != START1:
+            continue
 
-    b = serial.read(30)
+        if b2 := serial0.read() != START2:
+            continue
+
+    if not DRY_RUN:
+        b = serial0.read(30)
+    else:
+        b = struct.pack(
+            ">15h",
+            randint(0, 100),
+            randint(0, 100),
+            randint(0, 100),
+            randint(0, 100),
+            randint(0, 100),
+            randint(0, 100),
+            randint(0, 100),
+            randint(0, 100),
+            randint(0, 100),
+            randint(0, 100),
+            randint(0, 100),
+            randint(0, 100),
+            randint(0, 100),
+            randint(0, 100),
+            randint(0, 100),
+        )
     (
         lenght,
         pm10_standard,
@@ -144,5 +179,22 @@ while True:
     line = ",".join(str(f) for f in fields)
 
     f.write(line + "\n")
+
+    response = requests.post(
+        METRICS_ENDPOINT,
+        json=[
+            {
+                "name": "stefang.20240301.lol",
+                "interval": 1,
+                "value": 1,
+                "time": int(time()),
+            }
+        ],
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {os.getenv('METRICS_USER')}:{os.getenv('METRICS_API_KEY')}",
+        },
+    )
+    print(response.status_code)
 
     sleep(INTERVAL)
