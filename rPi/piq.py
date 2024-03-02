@@ -27,7 +27,7 @@ if not DRY_RUN:
 import serial
 
 HISTORY = 1440
-INTERVAL = 1
+INTERVAL = 60
 RESET_EVERY = 1
 COUNT = 0
 
@@ -105,7 +105,7 @@ while True:
         pm100_standard,
         pm10_env,
         pm25_env,
-        pm_100_env,
+        pm100_env,
         part_03um,
         part_05um,
         part_10um,
@@ -165,7 +165,7 @@ while True:
         pm100_standard,
         pm10_env,
         pm25_env,
-        pm_100_env,
+        pm100_env,
         part_03um,
         part_05um,
         part_10um,
@@ -180,15 +180,82 @@ while True:
 
     f.write(line + "\n")
 
+    ts = int(time()/INTERVAL) * INTERVAL
     response = requests.post(
         METRICS_ENDPOINT,
         json=[
             {
-                "name": "stefang.20240301.lol",
-                "interval": 1,
-                "value": 1,
-                "time": int(time()),
-            }
+                "name": "air.quality.pm10.standard",
+                "interval": INTERVAL,
+                "value": pm10_standard,
+                "time": ts
+            },
+            {
+                "name": "air.quality.pm25.standard",
+                "interval": INTERVAL,
+                "value": pm25_standard,
+                "time": ts
+            },
+            {
+                "name": "air.quality.pm100.standard",
+                "interval": INTERVAL,
+                "value": pm100_standard,
+                "time": ts
+            },
+            {
+                "name": "air.quality.pm10.env",
+                "interval": INTERVAL,
+                "value": pm10_env,
+                "time": ts
+            },
+            {
+                "name": "air.quality.pm25.env",
+                "interval": INTERVAL,
+                "value": pm25_env,
+                "time": ts
+            },
+            {
+                "name": "air.quality.pm100.env",
+                "interval": INTERVAL,
+                "value": pm100_env,
+                "time": ts
+            },
+            {
+                "name": "air.quality.part.03",
+                "interval": INTERVAL,
+                "value": part_03um,
+                "time": ts
+            },
+            {
+                "name": "air.quality.part.05",
+                "interval": INTERVAL,
+                "value": part_05um,
+                "time": ts
+            },
+            {
+                "name": "air.quality.part.10",
+                "interval": INTERVAL,
+                "value": part_10um,
+                "time": ts
+            },
+            {
+                "name": "air.quality.part.25",
+                "interval": INTERVAL,
+                "value": part_25um,
+                "time": ts
+            },
+            {
+                "name": "air.quality.part.50",
+                "interval": INTERVAL,
+                "value": part_50um,
+                "time": ts
+            },
+            {
+                "name": "air.quality.part.100",
+                "interval": INTERVAL,
+                "value": part_100um,
+                "time": ts
+            },
         ],
         headers={
             "Content-Type": "application/json",
