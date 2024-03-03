@@ -80,28 +80,103 @@ while True:
     if b2 := serial0.read() != START2:
       continue
 
-    if not DRY_RUN:
-      b = serial0.read(30)
-    else:
-      b = struct.pack(
-            ">15h",
-            randint(0, 100),
-            randint(0, 100),
-            randint(0, 100),
-            randint(0, 100),
-            randint(0, 100),
-            randint(0, 100),
-            randint(0, 100),
-            randint(0, 100),
-            randint(0, 100),
-            randint(0, 100),
-            randint(0, 100),
-            randint(0, 100),
-            randint(0, 100),
-            randint(0, 100),
-            randint(0, 100),
-        )
-    (
+  if not DRY_RUN:
+    b = serial0.read(30)
+  else:
+    b = struct.pack(
+          ">15h",
+          randint(0, 100),
+          randint(0, 100),
+          randint(0, 100),
+          randint(0, 100),
+          randint(0, 100),
+          randint(0, 100),
+          randint(0, 100),
+          randint(0, 100),
+          randint(0, 100),
+          randint(0, 100),
+          randint(0, 100),
+          randint(0, 100),
+          randint(0, 100),
+          randint(0, 100),
+          randint(0, 100),
+      )
+  (
+      lenght,
+      pm10_standard,
+      pm25_standard,
+      pm100_standard,
+      pm10_env,
+      pm25_env,
+      pm100_env,
+      part_03um,
+      part_05um,
+      part_10um,
+      part_25um,
+      part_50um,
+      part_100um,
+      reserved,
+      checksum,
+  ) = struct.unpack(">15H", b)
+
+  pm10_s.append(pm10_standard)
+  pm25_s.append(pm25_standard)
+  pm100_s.append(pm100_standard)
+  pm10_e.append(pm10_env)
+  pm25_e.append(pm25_env)
+  pm100_e.append(pm100_env)
+  part03.append(part_03um)
+  part05.append(part_05um)
+  part10.append(part_10um)
+  part25.append(part_25um)
+  part50.append(part_50um)
+  part100.append(part_100um)
+
+  if COUNT % INTERVAL == 0:
+    pm10_standard = sum(list(pm10_s)[-INTERVAL:]) / INTERVAL
+    pm25_standard = sum(list(pm25_s)[-INTERVAL:]) / INTERVAL
+    pm100_standard = sum(list(pm100_s)[-INTERVAL:]) / INTERVAL
+    pm10_env = sum(list(pm10_e)[-INTERVAL:]) / INTERVAL
+    pm25_env = sum(list(pm25_e)[-INTERVAL:]) / INTERVAL
+    pm100_env = sum(list(pm100_e)[-INTERVAL:]) / INTERVAL
+    part_03um = sum(list(part03)[-INTERVAL:]) / INTERVAL
+    part_05um = sum(list(part05)[-INTERVAL:]) / INTERVAL
+    part_25um = sum(list(part25)[-INTERVAL:]) / INTERVAL
+    part_50um = sum(list(part50)[-INTERVAL:]) / INTERVAL
+    part_100um = sum(list(part100)[-INTERVAL:]) / INTERVAL
+
+    ax.clear()
+    ax2.clear()
+
+    ax2.plot(pm10_s, label="PM10")
+    ax2.plot(pm25_s, label="PM2.5")
+    ax2.plot(pm100_s, label="PM100")
+
+    ax.plot(part03, label="Particles > 0.3um")
+    ax.plot(part05, label="Particles > 0.5um")
+    ax.plot(part10, label="Particles > 1.0um")
+    ax.plot(part25, label="Particles > 2.5um")
+    ax.plot(part50, label="Particles > 5.0um")
+    ax.plot(part100, label="Particles > 10.0um")
+
+    ax.legend()
+    ax2.legend()
+
+
+    print("####### AIR QUALITY #############")
+    print(f"PM1.0: {pm10_standard}uq/m3")
+    print(f"PM2.5: {pm25_standard}uq/m3")
+    print(f"PM10: {pm100_standard}uq/m3")
+    print(f"particles over 0.3um: {part_03um} in 0.1L of air")
+    print(f"particles over 0.5um: {part_05um} in 0.1L of air")
+    print(f"particles over 1.0um: {part_10um} in 0.1L of air")
+    print(f"particles over 2.5um: {part_25um} in 0.1L of air")
+    print(f"particles over 5.0um: {part_50um} in 0.1L of air")
+    print(f"particles over 10.0um: {part_100um} in 0.1L of air")
+    print()
+
+    fields = [
+        int(time()),
         lenght,
         pm10_standard,
         pm25_standard,
@@ -117,170 +192,95 @@ while True:
         part_100um,
         reserved,
         checksum,
-    ) = struct.unpack(">15H", b)
+    ]
 
-    pm10_s.append(pm10_standard)
-    pm25_s.append(pm25_standard)
-    pm100_s.append(pm100_standard)
-    pm10_e.append(pm10_env)
-    pm25_e.append(pm25_env)
-    pm100_e.append(pm100_env)
-    part03.append(part_03um)
-    part05.append(part_05um)
-    part10.append(part_10um)
-    part25.append(part_25um)
-    part50.append(part_50um)
-    part100.append(part_100um)
+    line = ",".join(str(f) for f in fields)
 
-    if COUNT % INTERVAL == 0:
-      pm10_standard = sum(list(pm10_s)[-INTERVAL:]) / INTERVAL
-      pm25_standard = sum(list(pm25_s)[-INTERVAL:]) / INTERVAL
-      pm100_standard = sum(list(pm100_s)[-INTERVAL:]) / INTERVAL
-      pm10_env = sum(list(pm10_e)[-INTERVAL:]) / INTERVAL
-      pm25_env = sum(list(pm25_e)[-INTERVAL:]) / INTERVAL
-      pm100_env = sum(list(pm100_e)[-INTERVAL:]) / INTERVAL
-      part_03um = sum(list(part03)[-INTERVAL:]) / INTERVAL
-      part_05um = sum(list(part05)[-INTERVAL:]) / INTERVAL
-      part_25um = sum(list(part25)[-INTERVAL:]) / INTERVAL
-      part_50um = sum(list(part50)[-INTERVAL:]) / INTERVAL
-      part_100um = sum(list(part100)[-INTERVAL:]) / INTERVAL
+    f.write(line + "\n")
 
-      ax.clear()
-      ax2.clear()
-  
-      ax2.plot(pm10_s, label="PM10")
-      ax2.plot(pm25_s, label="PM2.5")
-      ax2.plot(pm100_s, label="PM100")
-  
-      ax.plot(part03, label="Particles > 0.3um")
-      ax.plot(part05, label="Particles > 0.5um")
-      ax.plot(part10, label="Particles > 1.0um")
-      ax.plot(part25, label="Particles > 2.5um")
-      ax.plot(part50, label="Particles > 5.0um")
-      ax.plot(part100, label="Particles > 10.0um")
-  
-      ax.legend()
-      ax2.legend()
-  
-  
-      print("####### AIR QUALITY #############")
-      print(f"PM1.0: {pm10_standard}uq/m3")
-      print(f"PM2.5: {pm25_standard}uq/m3")
-      print(f"PM10: {pm100_standard}uq/m3")
-      print(f"particles over 0.3um: {part_03um} in 0.1L of air")
-      print(f"particles over 0.5um: {part_05um} in 0.1L of air")
-      print(f"particles over 1.0um: {part_10um} in 0.1L of air")
-      print(f"particles over 2.5um: {part_25um} in 0.1L of air")
-      print(f"particles over 5.0um: {part_50um} in 0.1L of air")
-      print(f"particles over 10.0um: {part_100um} in 0.1L of air")
-      print()
-  
-      fields = [
-          int(time()),
-          lenght,
-          pm10_standard,
-          pm25_standard,
-          pm100_standard,
-          pm10_env,
-          pm25_env,
-          pm100_env,
-          part_03um,
-          part_05um,
-          part_10um,
-          part_25um,
-          part_50um,
-          part_100um,
-          reserved,
-          checksum,
-      ]
-  
-      line = ",".join(str(f) for f in fields)
-  
-      f.write(line + "\n")
-  
-      ts = int(time()/INTERVAL) * INTERVAL
-      response = requests.post(
-          METRICS_ENDPOINT,
-          json=[
-              {
-                  "name": "air.quality.pm10.standard",
-                  "interval": INTERVAL,
-                  "value": pm10_standard,
-                  "time": ts
-              },
-              {
-                  "name": "air.quality.pm25.standard",
-                  "interval": INTERVAL,
-                  "value": pm25_standard,
-                  "time": ts
-              },
-              {
-                  "name": "air.quality.pm100.standard",
-                  "interval": INTERVAL,
-                  "value": pm100_standard,
-                  "time": ts
-              },
-              {
-                  "name": "air.quality.pm10.env",
-                  "interval": INTERVAL,
-                  "value": pm10_env,
-                  "time": ts
-              },
-              {
-                  "name": "air.quality.pm25.env",
-                  "interval": INTERVAL,
-                  "value": pm25_env,
-                  "time": ts
-              },
-              {
-                  "name": "air.quality.pm100.env",
-                  "interval": INTERVAL,
-                  "value": pm100_env,
-                  "time": ts
-              },
-              {
-                  "name": "air.quality.part.03",
-                  "interval": INTERVAL,
-                  "value": part_03um,
-                  "time": ts
-              },
-              {
-                  "name": "air.quality.part.05",
-                  "interval": INTERVAL,
-                  "value": part_05um,
-                  "time": ts
-              },
-              {
-                  "name": "air.quality.part.10",
-                  "interval": INTERVAL,
-                  "value": part_10um,
-                  "time": ts
-              },
-              {
-                  "name": "air.quality.part.25",
-                  "interval": INTERVAL,
-                  "value": part_25um,
-                  "time": ts
-              },
-              {
-                  "name": "air.quality.part.50",
-                  "interval": INTERVAL,
-                  "value": part_50um,
-                  "time": ts
-              },
-              {
-                  "name": "air.quality.part.100",
-                  "interval": INTERVAL,
-                  "value": part_100um,
-                  "time": ts
-              },
-          ],
-          headers={
-              "Content-Type": "application/json",
-              "Authorization": f"Bearer {os.getenv('METRICS_USER')}:{os.getenv('METRICS_API_KEY')}",
-          },
-      )
-      print(response.status_code)
+    ts = int(time()/INTERVAL) * INTERVAL
+    response = requests.post(
+        METRICS_ENDPOINT,
+        json=[
+            {
+                "name": "air.quality.pm10.standard",
+                "interval": INTERVAL,
+                "value": pm10_standard,
+                "time": ts
+            },
+            {
+                "name": "air.quality.pm25.standard",
+                "interval": INTERVAL,
+                "value": pm25_standard,
+                "time": ts
+            },
+            {
+                "name": "air.quality.pm100.standard",
+                "interval": INTERVAL,
+                "value": pm100_standard,
+                "time": ts
+            },
+            {
+                "name": "air.quality.pm10.env",
+                "interval": INTERVAL,
+                "value": pm10_env,
+                "time": ts
+            },
+            {
+                "name": "air.quality.pm25.env",
+                "interval": INTERVAL,
+                "value": pm25_env,
+                "time": ts
+            },
+            {
+                "name": "air.quality.pm100.env",
+                "interval": INTERVAL,
+                "value": pm100_env,
+                "time": ts
+            },
+            {
+                "name": "air.quality.part.03",
+                "interval": INTERVAL,
+                "value": part_03um,
+                "time": ts
+            },
+            {
+                "name": "air.quality.part.05",
+                "interval": INTERVAL,
+                "value": part_05um,
+                "time": ts
+            },
+            {
+                "name": "air.quality.part.10",
+                "interval": INTERVAL,
+                "value": part_10um,
+                "time": ts
+            },
+            {
+                "name": "air.quality.part.25",
+                "interval": INTERVAL,
+                "value": part_25um,
+                "time": ts
+            },
+            {
+                "name": "air.quality.part.50",
+                "interval": INTERVAL,
+                "value": part_50um,
+                "time": ts
+            },
+            {
+                "name": "air.quality.part.100",
+                "interval": INTERVAL,
+                "value": part_100um,
+                "time": ts
+            },
+        ],
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {os.getenv('METRICS_USER')}:{os.getenv('METRICS_API_KEY')}",
+        },
+    )
+    print(response.status_code)
 
   COUNT += 1
   plt.pause(MEASURE_INTERVAL)
