@@ -191,87 +191,90 @@ while True:
 
         ts = int(time() / SEND_EVERY * MEASURE_INTERVAL) * SEND_EVERY
         INTERVAL = SEND_EVERY * MEASURE_INTERVAL
-        response = requests.post(
-            METRICS_ENDPOINT,
-            json=[
-                {
-                    "name": "air.quality.pm10.standard",
-                    "interval": INTERVAL,
-                    "value": pm10_standard,
-                    "time": ts,
+        try:
+            response = requests.post(
+                METRICS_ENDPOINT,
+                json=[
+                    {
+                        "name": "air.quality.pm10.standard",
+                        "interval": INTERVAL,
+                        "value": pm10_standard,
+                        "time": ts,
+                    },
+                    {
+                        "name": "air.quality.pm25.standard",
+                        "interval": INTERVAL,
+                        "value": pm25_standard,
+                        "time": ts,
+                    },
+                    {
+                        "name": "air.quality.pm100.standard",
+                        "interval": INTERVAL,
+                        "value": pm100_standard,
+                        "time": ts,
+                    },
+                    {
+                        "name": "air.quality.pm10.env",
+                        "interval": INTERVAL,
+                        "value": pm10_env,
+                        "time": ts,
+                    },
+                    {
+                        "name": "air.quality.pm25.env",
+                        "interval": INTERVAL,
+                        "value": pm25_env,
+                        "time": ts,
+                    },
+                    {
+                        "name": "air.quality.pm100.env",
+                        "interval": INTERVAL,
+                        "value": pm100_env,
+                        "time": ts,
+                    },
+                    {
+                        "name": "air.quality.part.03",
+                        "interval": INTERVAL,
+                        "value": part_03um,
+                        "time": ts,
+                    },
+                    {
+                        "name": "air.quality.part.05",
+                        "interval": INTERVAL,
+                        "value": part_05um,
+                        "time": ts,
+                    },
+                    {
+                        "name": "air.quality.part.10",
+                        "interval": INTERVAL,
+                        "value": part_10um,
+                        "time": ts,
+                    },
+                    {
+                        "name": "air.quality.part.25",
+                        "interval": INTERVAL,
+                        "value": part_25um,
+                        "time": ts,
+                    },
+                    {
+                        "name": "air.quality.part.50",
+                        "interval": INTERVAL,
+                        "value": part_50um,
+                        "time": ts,
+                    },
+                    {
+                        "name": "air.quality.part.100",
+                        "interval": INTERVAL,
+                        "value": part_100um,
+                        "time": ts,
+                    },
+                ],
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {os.getenv('METRICS_USER')}:{os.getenv('METRICS_API_KEY')}",
                 },
-                {
-                    "name": "air.quality.pm25.standard",
-                    "interval": INTERVAL,
-                    "value": pm25_standard,
-                    "time": ts,
-                },
-                {
-                    "name": "air.quality.pm100.standard",
-                    "interval": INTERVAL,
-                    "value": pm100_standard,
-                    "time": ts,
-                },
-                {
-                    "name": "air.quality.pm10.env",
-                    "interval": INTERVAL,
-                    "value": pm10_env,
-                    "time": ts,
-                },
-                {
-                    "name": "air.quality.pm25.env",
-                    "interval": INTERVAL,
-                    "value": pm25_env,
-                    "time": ts,
-                },
-                {
-                    "name": "air.quality.pm100.env",
-                    "interval": INTERVAL,
-                    "value": pm100_env,
-                    "time": ts,
-                },
-                {
-                    "name": "air.quality.part.03",
-                    "interval": INTERVAL,
-                    "value": part_03um,
-                    "time": ts,
-                },
-                {
-                    "name": "air.quality.part.05",
-                    "interval": INTERVAL,
-                    "value": part_05um,
-                    "time": ts,
-                },
-                {
-                    "name": "air.quality.part.10",
-                    "interval": INTERVAL,
-                    "value": part_10um,
-                    "time": ts,
-                },
-                {
-                    "name": "air.quality.part.25",
-                    "interval": INTERVAL,
-                    "value": part_25um,
-                    "time": ts,
-                },
-                {
-                    "name": "air.quality.part.50",
-                    "interval": INTERVAL,
-                    "value": part_50um,
-                    "time": ts,
-                },
-                {
-                    "name": "air.quality.part.100",
-                    "interval": INTERVAL,
-                    "value": part_100um,
-                    "time": ts,
-                },
-            ],
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {os.getenv('METRICS_USER')}:{os.getenv('METRICS_API_KEY')}",
-            },
-        )
+            )
+        except Exception as e:
+            print("Posting metrics failed: ", e) 
         print(response.status_code)
 
     COUNT += 1
